@@ -1,0 +1,48 @@
+================================================================================
+PROMPT LOG — Razorpay Reimbursements Backend Assignment
+Maintained incrementally. One entry per prompt used.
+================================================================================
+
+[2024-04-xx | Session 1 | Tool: Claude AI]
+
+PROMPT:
+Read the Razorpay hiring assignment PDF completely. I have already run:
+  npm init -y
+  npm install
+  npm i express
+  npm i nodemon
+What should I do now?
+
+PURPOSE: Initial project setup guidance — understand the full requirements before writing code.
+
+--------------------------------------------------------------------------------
+
+[2024-04-xx | Session 1 | Tool: Claude AI]
+
+PROMPT:
+Yes (scaffold the full project structure with all files — migrations, models,
+routes, controllers, middleware — ready to run)
+
+PURPOSE: Generate the complete project scaffold including:
+  - package.json with dev / db:migrate / db:seed-data scripts
+  - PostgreSQL migrations (raw SQL, no ORM)
+  - User, Assignment, Reimbursement models (thin data-access layer)
+  - Auth middleware (JWT via httpOnly cookie)
+  - RBAC middleware (role guard factory)
+  - Controllers: onboarding, roles, employees, reimbursements
+  - Routes mounted under /rest
+  - CFO seeder
+  - Express entry point on port 7002
+
+KEY DESIGN DECISIONS MADE:
+  1. No ORM — raw pg queries for full control and visibility.
+  2. Reimbursement approval uses two boolean flags (rm_approved, ape_approved)
+     plus an is_rejected flag rather than a single status column. This correctly
+     models the dual-approval requirement: status shown to EMP is APPROVED only
+     when BOTH flags are true.
+  3. JWT stored in httpOnly cookie; cleared on logout.
+  4. Separate reimbursement_approvals table for full audit trail.
+  5. SOLID principles: each file has a single responsibility; controllers do not
+     touch DB directly; models do not know about HTTP.
+
+--------------------------------------------------------------------------------
