@@ -3,46 +3,121 @@ PROMPT LOG — Razorpay Reimbursements Backend Assignment
 Maintained incrementally. One entry per prompt used.
 ================================================================================
 
-[2024-04-xx | Session 1 | Tool: Claude AI]
+--------------------------------------------------------------------------------
+[Step 1 | Initial Analysis]
 
 PROMPT:
-Read the Razorpay hiring assignment PDF completely. I have already run:
-  npm init -y
-  npm install
-  npm i express
-  npm i nodemon
-What should I do now?
+Read the Razorpay hiring assignment PDF. I have already run npm init and
+installed express and nodemon. What should I do next?
 
-PURPOSE: Initial project setup guidance — understand the full requirements before writing code.
+WHAT I DID:
+- Analyzed the full assignment requirements
+- Identified 4 roles: EMP, RM, APE, CFO
+- Planned project structure and dependencies
+- Key insight: dual-approval model needed (RM + APE both must approve)
+- Decided to use raw pg (no ORM), JWT in httpOnly cookie
 
 --------------------------------------------------------------------------------
-
-[2024-04-xx | Session 1 | Tool: Claude AI]
+[Step 2 | Project Scaffold]
 
 PROMPT:
-Yes (scaffold the full project structure with all files — migrations, models,
-routes, controllers, middleware — ready to run)
+Scaffold the full project — config, migrations, models, controllers,
+middlewares, routes, seeder, entry point. Use Express + PostgreSQL, no ORM,
+port 7002, cookie-based JWT auth.
 
-PURPOSE: Generate the complete project scaffold including:
-  - package.json with dev / db:migrate / db:seed-data scripts
-  - PostgreSQL migrations (raw SQL, no ORM)
-  - User, Assignment, Reimbursement models (thin data-access layer)
-  - Auth middleware (JWT via httpOnly cookie)
-  - RBAC middleware (role guard factory)
-  - Controllers: onboarding, roles, employees, reimbursements
-  - Routes mounted under /rest
-  - CFO seeder
-  - Express entry point on port 7002
+WHAT I DID:
+- Created full project structure under src/
+- Config: db connection (pg Pool), constants (roles, statuses, domain)
+- Migrations: raw SQL runner + 4 migration files (users, assignments,
+  reimbursements, approvals)
+- Models: user, assignment, reimbursement (thin data-access layer)
+- Middlewares: auth (JWT cookie verification), rbac (role guard factory)
+- Controllers: onboarding, roles, employees, reimbursements
+- Routes: all mounted under /rest prefix
+- Seeder: CFO account with exact credentials from spec
+- Entry point: Express app on port 7002
 
-KEY DESIGN DECISIONS MADE:
-  1. No ORM — raw pg queries for full control and visibility.
-  2. Reimbursement approval uses two boolean flags (rm_approved, ape_approved)
-     plus an is_rejected flag rather than a single status column. This correctly
-     models the dual-approval requirement: status shown to EMP is APPROVED only
-     when BOTH flags are true.
-  3. JWT stored in httpOnly cookie; cleared on logout.
-  4. Separate reimbursement_approvals table for full audit trail.
-  5. SOLID principles: each file has a single responsibility; controllers do not
-     touch DB directly; models do not know about HTTP.
+KEY DESIGN DECISIONS:
+  1. No ORM — raw pg for full control and visibility
+  2. Reimbursement status derived from two boolean flags (rm_approved,
+     ape_approved) + is_rejected. Status is APPROVED only when both are true.
+  3. Separate reimbursement_approvals table for audit trail
+  4. SOLID principles — each file has one responsibility
+  5. Used bcryptjs (pure JS) instead of bcrypt (avoids native build issues)
 
 --------------------------------------------------------------------------------
+[Step 3 | Database Setup]
+
+PROMPT:
+How to install PostgreSQL on Windows and set up the database?
+
+WHAT I DID:
+- Installed PostgreSQL (Server + pgAdmin + CLI tools), skipped Stack Builder
+- Port 5432 for database (separate from app port 7002)
+- Created database: razorpay_reimbursements via pgAdmin
+- Created .env file with DB credentials and JWT secret
+
+--------------------------------------------------------------------------------
+[Step 4 | Run Migrations and Seed]
+
+PROMPT:
+Run migrations and seed the CFO account.
+
+COMMANDS:
+  npm run db:migrate   → created all 4 tables + _migrations tracking table
+  npm run db:seed-data → seeded CFO (cfo@org.com / CFO#ORG@April2026)
+
+--------------------------------------------------------------------------------
+[Step 5 | Start Server]
+
+PROMPT:
+Start the server and verify it runs on port 7002.
+
+COMMAND:
+  npm run dev → 🚀 Server running on port 7002
+
+--------------------------------------------------------------------------------
+[Step 6 | Full API Testing via Thunder Client]
+
+PROMPT:
+Test all endpoints end-to-end using Thunder Client in VS Code.
+
+TESTS RUN (all passed ✅):
+
+  POST /rest/onboardings/register  → registered John Doe (EMP), Jane Smith (EMP), Alice (EMP)
+  POST /rest/onboardings/login     → logged in as John, Jane, Alice, CFO at various steps
+  POST /rest/onboardings/logout    → session cleared successfully
+
+  POST /rest/roles/assign          → John promoted to RM, Alice promoted to APE
+  POST /rest/employees/assign      → Jane (EMP) assigned to John (RM)
+  GET  /rest/employees             → CFO sees everyone, RM sees only own EMPs
+
+  POST  /rest/reimbursements       → Jane raised Travel Expense ₹500 (status: PENDING)
+  GET   /rest/reimbursements       → role-filtered views verified for EMP, RM, APE, CFO
+  PATCH /rest/reimbursements       → John (RM) approved, then Alice (APE) approved
+
+FULL APPROVAL FLOW VERIFIED:
+  Jane raises → PENDING
+  John (RM) approves → still PENDING to Jane
+  Alice (APE) approves → Jane sees APPROVED ✅
+  CFO sees fully approved reimbursements ✅
+
+--------------------------------------------------------------------------------
+[Step 7 | GitHub Push]
+
+PROMPT:
+Push project to GitHub.
+
+COMMANDS:
+  git init
+  git add .
+  git commit -m "feat: initial project setup with RBAC reimbursements backend"
+  git remote add origin https://github.com/YOUR_USERNAME/razorpay-reimbursements.git
+  git branch -M main
+  git push -u origin main
+
+NOTE: .env excluded via .gitignore ✅
+
+================================================================================
+END OF PROMPT LOG
+================================================================================
