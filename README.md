@@ -72,6 +72,7 @@ Server runs on **port 7002**.
 ### Admin (CFO) — Seeded automatically
 ```
 Email:    cfo@org.com
+Password: CFO#ORG@April2026
 
 ```
 
