@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ReimburseFlow</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f0f13;
+      --surface: #17171d;
+      --surface2: #1e1e27;
+      --border: #2a2a36;
+      --accent: #6c63ff;
+      --accent2: #a78bfa;
+      --green: #22c55e;
+      --red: #ef4444;
+      --yellow: #f59e0b;
+      --text: #f1f1f5;
+      --muted: #8888a0;
+      --radius: 12px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── NAV ── */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 40px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .nav-right { display: flex; align-items: center; gap: 14px; }
+    .role-badge {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 5px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent2);
+      letter-spacing: 0.05em;
+      display: none;
+    }
+    .btn {
+      padding: 9px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn:hover { opacity: 0.85; transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-danger { background: var(--red); color: #fff; }
+    .btn-sm { padding: 6px 14px; font-size: 13px; }
+    .btn-green { background: var(--green); color: #fff; }
+    .btn-red { background: var(--red); color: #fff; }
+
+    /* ── PAGES ── */
+    .page { display: none; flex: 1; }
+    .page.active { display: flex; }
+
+    /* ── AUTH PAGE ── */
+    #auth-page {
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      padding: 40px 20px;
+    }
+    .auth-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px;
+      width: 100%;
+      max-width: 420px;
+    }
+    .auth-card h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 26px;
+      margin-bottom: 6px;
+    }
+    .auth-card p { color: var(--muted); font-size: 14px; margin-bottom: 28px; }
+    .auth-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 28px;
+      background: var(--surface2);
+      padding: 4px;
+      border-radius: 10px;
+    }
+    .auth-tab {
+      flex: 1;
+      padding: 8px;
+      text-align: center;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--muted);
+      transition: all 0.2s;
+    }
+    .auth-tab.active { background: var(--accent); color: #fff; }
+
+    .form-group { margin-bottom: 18px; }
+    label { display: block; font-size: 13px; font-weight: 500; color: var(--muted); margin-bottom: 7px; }
+    input, select, textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 11px 14px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+    textarea { resize: vertical; min-height: 80px; }
+    .error-msg {
+      color: var(--red);
+      font-size: 13px;
+      margin-top: 12px;
+      display: none;
+    }
+
+    /* ── DASHBOARD ── */
+    #dashboard-page { flex-direction: row; }
+    .sidebar {
+      width: 240px;
+      min-height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 28px 16px;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .sidebar-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      padding: 0 12px;
+      margin: 12px 0 6px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+    .nav-item:hover { background: var(--surface2); color: var(--text); }
+    .nav-item.active { background: var(--accent); color: #fff; }
+    .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+
+    .main-content {
+      flex: 1;
+      padding: 36px 40px;
+      overflow-y: auto;
+    }
+    .page-header {
+      margin-bottom: 28px;
+    }
+    .page-header h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+    }
+    .page-header p { color: var(--muted); font-size: 14px; margin-top: 4px; }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ── TABLE ── */
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 14px;
+      font-size: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--surface2); }
+
+    /* ── STATUS BADGES ── */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-pending { background: rgba(245,158,11,0.15); color: var(--yellow); }
+    .badge-approved { background: rgba(34,197,94,0.15); color: var(--green); }
+    .badge-rejected { background: rgba(239,68,68,0.15); color: var(--red); }
+    .badge-emp { background: rgba(108,99,255,0.15); color: var(--accent); }
+    .badge-rm { background: rgba(167,139,250,0.15); color: var(--accent2); }
+    .badge-ape { background: rgba(34,197,94,0.15); color: var(--green); }
+    .badge-cfo { background: rgba(245,158,11,0.15); color: var(--yellow); }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      width: 100%;
+      max-width: 460px;
+    }
+    .modal h3 { font-family: 'Syne', sans-serif; font-size: 20px; margin-bottom: 20px; }
+    .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 20px;
+      font-size: 14px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 999;
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+      max-width: 320px;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { border-color: var(--green); }
+    .toast.error { border-color: var(--red); }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--muted);
+    }
+    .empty-state .empty-icon { font-size: 40px; margin-bottom: 12px; }
+    .empty-state p { font-size: 14px; }
+
+    /* ── STATS ROW ── */
+    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+    }
+    .stat-label { font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: 0.06em; margin-bottom: 8px; }
+    .stat-value { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; }
+    .stat-value.green { color: var(--green); }
+    .stat-value.yellow { color: var(--yellow); }
+    .stat-value.purple { color: var(--accent2); }
+
+    .section { display: none; }
+    .section.active { display: block; }
+
+    .action-row { display: flex; gap: 8px; }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">ReimburseFlow</div>
+  <div class="nav-right">
+    <span class="role-badge" id="role-badge"></span>
+    <span id="user-name" style="font-size:14px;color:var(--muted);display:none"></span>
+    <button class="btn btn-outline btn-sm" id="logout-btn" style="display:none" onclick="logout()">Log out</button>
+  </div>
+</nav>
+
+<!-- AUTH PAGE -->
+<div class="page active" id="auth-page">
+  <div class="auth-card">
+    <h2>Welcome back</h2>
+    <p>Sign in to manage your reimbursements</p>
+    <div class="auth-tabs">
+      <div class="auth-tab active" onclick="switchTab('login')">Sign in</div>
+      <div class="auth-tab" onclick="switchTab('register')">Register</div>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <div id="login-form">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="login-email" placeholder="you@org.com"/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="••••••••"/>
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="login()">Sign in</button>
+      <div class="error-msg" id="login-error"></div>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div id="register-form" style="display:none">
+      <div class="form-group">
+        <label>Full name</label>
+        <input type="text" id="reg-name" placeholder="John Doe"/>
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="reg-email" placeholder="you@org.com"/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="reg-password" placeholder="••••••••"/>
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="register()">Create account</button>
+      <div class="error-msg" id="reg-error"></div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD PAGE -->
+<div class="page" id="dashboard-page">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-label">MENU</div>
+    <button class="nav-item active" onclick="showSection('reimbursements')">
+      <span class="icon">💸</span> Reimbursements
+    </button>
+    <button class="nav-item" id="nav-employees" onclick="showSection('employees')" style="display:none">
+      <span class="icon">👥</span> Employees
+    </button>
+    <button class="nav-item" id="nav-admin" onclick="showSection('admin')" style="display:none">
+      <span class="icon">⚙️</span> Admin
+    </button>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main-content">
+
+    <!-- REIMBURSEMENTS SECTION -->
+    <div class="section active" id="section-reimbursements">
+      <div class="page-header">
+        <h1>Reimbursements</h1>
+        <p id="reimb-subtitle">Your submitted reimbursement requests</p>
+      </div>
+
+      <div class="stats-row" id="stats-row" style="display:none">
+        <div class="stat-card">
+          <div class="stat-label">PENDING</div>
+          <div class="stat-value yellow" id="stat-pending">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">APPROVED</div>
+          <div class="stat-value green" id="stat-approved">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">REJECTED</div>
+          <div class="stat-value purple" id="stat-rejected">0</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>📋</span> Requests
+          <div style="margin-left:auto">
+            <button class="btn btn-primary btn-sm" id="new-reimb-btn" onclick="openReimbModal()" style="display:none">+ New request</button>
+          </div>
+        </div>
+        <div id="reimb-list"><div class="empty-state"><div class="empty-icon">📭</div><p>Loading...</p></div></div>
+      </div>
+    </div>
+
+    <!-- EMPLOYEES SECTION -->
+    <div class="section" id="section-employees">
+      <div class="page-header">
+        <h1>Employees</h1>
+        <p>People in your organization</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><span>👥</span> Directory</div>
+        <div id="emp-list"><div class="empty-state"><div class="empty-icon">📭</div><p>Loading...</p></div></div>
+      </div>
+    </div>
+
+    <!-- ADMIN SECTION -->
+    <div class="section" id="section-admin">
+      <div class="page-header">
+        <h1>Admin</h1>
+        <p>Manage roles and assignments</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span>🎭</span> Assign Role</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+          <div class="form-group" style="margin:0;flex:1;min-width:160px">
+            <label>User ID</label>
+            <input type="number" id="admin-userid" placeholder="e.g. 3"/>
+          </div>
+          <div class="form-group" style="margin:0;flex:1;min-width:160px">
+            <label>Role</label>
+            <select id="admin-role">
+              <option value="EMP">EMP</option>
+              <option value="RM">RM</option>
+              <option value="APE">APE</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="assignRole()">Assign</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span>🔗</span> Assign Employee to RM</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+          <div class="form-group" style="margin:0;flex:1;min-width:160px">
+            <label>EMP User ID</label>
+            <input type="number" id="admin-empid" placeholder="Employee ID"/>
+          </div>
+          <div class="form-group" style="margin:0;flex:1;min-width:160px">
+            <label>RM User ID</label>
+            <input type="number" id="admin-rmid" placeholder="RM ID"/>
+          </div>
+          <button class="btn btn-primary" onclick="assignEmpToRM()">Assign</button>
+          <button class="btn btn-outline" onclick="unassignEmpFromRM()">Remove</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- NEW REIMBURSEMENT MODAL -->
+<div class="modal-overlay" id="reimb-modal">
+  <div class="modal">
+    <h3>New reimbursement</h3>
+    <div class="form-group">
+      <label>Title</label>
+      <input type="text" id="reimb-title" placeholder="e.g. Travel to client office"/>
+    </div>
+    <div class="form-group">
+      <label>Description</label>
+      <textarea id="reimb-desc" placeholder="Briefly describe the expense..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>Amount (₹)</label>
+      <input type="number" id="reimb-amount" placeholder="500"/>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitReimbursement()">Submit request</button>
+    </div>
+  </div>
+</div>
+
+<!-- APPROVE/REJECT MODAL -->
+<div class="modal-overlay" id="action-modal">
+  <div class="modal">
+    <h3>Review reimbursement</h3>
+    <p style="color:var(--muted);font-size:14px;margin-bottom:20px">Reimbursement ID: <span id="action-reimb-id" style="color:var(--text);font-weight:600"></span></p>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeActionModal()">Cancel</button>
+      <button class="btn btn-red" onclick="takeAction('REJECTED')">Reject</button>
+      <button class="btn btn-green" onclick="takeAction('APPROVED')">Approve</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = 'http://localhost:7002/rest';
+  let currentUser = null;
+  let currentReimbId = null;
+
+  // ── HELPERS ──────────────────────────────────────────────────────────────
+  async function api(method, path, body) {
+    const opts = { method, credentials: 'include', headers: { 'Content-Type': 'application/json' } };
+    if (body) opts.body = JSON.stringify(body);
+    const res = await fetch(API + path, opts);
+    return res.json();
+  }
+
+  function toast(msg, type = 'success') {
+    const el = document.getElementById('toast');
+    el.textContent = (type === 'success' ? '✅ ' : '❌ ') + msg;
+    el.className = `toast ${type} show`;
+    setTimeout(() => el.classList.remove('show'), 3000);
+  }
+
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function showSection(name) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('section-' + name).classList.add('active');
+    event.currentTarget.classList.add('active');
+    if (name === 'reimbursements') loadReimbursements();
+    if (name === 'employees') loadEmployees();
+  }
+
+  function roleBadge(role) {
+    return `<span class="badge badge-${role.toLowerCase()}">${role}</span>`;
+  }
+
+  function statusBadge(status) {
+    return `<span class="badge badge-${status.toLowerCase()}">${status}</span>`;
+  }
+
+  // ── AUTH ──────────────────────────────────────────────────────────────────
+  function switchTab(tab) {
+    document.querySelectorAll('.auth-tab').forEach((t, i) => t.classList.toggle('active', (i === 0) === (tab === 'login')));
+    document.getElementById('login-form').style.display = tab === 'login' ? 'block' : 'none';
+    document.getElementById('register-form').style.display = tab === 'register' ? 'block' : 'none';
+  }
+
+  async function login() {
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    const err = document.getElementById('login-error');
+    err.style.display = 'none';
+    const data = await api('POST', '/onboardings/login', { email, password });
+    if (data.status === 'success') {
+      currentUser = data.data;
+      setupDashboard();
+    } else {
+      err.textContent = data.message;
+      err.style.display = 'block';
+    }
+  }
+
+  async function register() {
+    const name = document.getElementById('reg-name').value.trim();
+    const email = document.getElementById('reg-email').value.trim();
+    const password = document.getElementById('reg-password').value;
+    const err = document.getElementById('reg-error');
+    err.style.display = 'none';
+    const data = await api('POST', '/onboardings/register', { name, email, password });
+    if (data.status === 'success') {
+      currentUser = data.data;
+      setupDashboard();
+    } else {
+      err.textContent = data.message;
+      err.style.display = 'block';
+    }
+  }
+
+  async function logout() {
+    await api('POST', '/onboardings/logout');
+    currentUser = null;
+    document.getElementById('role-badge').style.display = 'none';
+    document.getElementById('user-name').style.display = 'none';
+    document.getElementById('logout-btn').style.display = 'none';
+    showPage('auth-page');
+  }
+
+  // ── DASHBOARD SETUP ───────────────────────────────────────────────────────
+  function setupDashboard() {
+    const { role, name } = currentUser;
+    document.getElementById('role-badge').textContent = role;
+    document.getElementById('role-badge').style.display = 'inline-block';
+    document.getElementById('user-name').textContent = name;
+    document.getElementById('user-name').style.display = 'inline';
+    document.getElementById('logout-btn').style.display = 'inline-block';
+
+    // Show nav items by role
+    document.getElementById('nav-employees').style.display = ['RM','APE','CFO'].includes(role) ? 'flex' : 'none';
+    document.getElementById('nav-admin').style.display = role === 'CFO' ? 'flex' : 'none';
+    document.getElementById('new-reimb-btn').style.display = role === 'EMP' ? 'inline-block' : 'none';
+    document.getElementById('stats-row').style.display = role === 'EMP' ? 'grid' : 'none';
+
+    // Subtitle by role
+    const subtitles = {
+      EMP: 'Your submitted reimbursement requests',
+      RM: 'Pending requests from your team',
+      APE: 'Requests approved by RM, awaiting your review',
+      CFO: 'Fully approved reimbursements'
+    };
+    document.getElementById('reimb-subtitle').textContent = subtitles[role] || '';
+
+    showPage('dashboard-page');
+    loadReimbursements();
+  }
+
+  // ── REIMBURSEMENTS ────────────────────────────────────────────────────────
+  async function loadReimbursements() {
+    const data = await api('GET', '/reimbursements');
+    const list = document.getElementById('reimb-list');
+    if (!data.data || !data.data.reimbursements.length) {
+      list.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><p>No reimbursements to show</p></div>`;
+      return;
+    }
+
+    const reimbs = data.data.reimbursements;
+
+    // Update stats for EMP
+    if (currentUser.role === 'EMP') {
+      document.getElementById('stat-pending').textContent = reimbs.filter(r => r.status === 'PENDING').length;
+      document.getElementById('stat-approved').textContent = reimbs.filter(r => r.status === 'APPROVED').length;
+      document.getElementById('stat-rejected').textContent = reimbs.filter(r => r.status === 'REJECTED').length;
+    }
+
+    const canAct = ['RM','APE','CFO'].includes(currentUser.role);
+    list.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>TITLE</th>
+            <th>DESCRIPTION</th>
+            <th>AMOUNT</th>
+            <th>STATUS</th>
+            ${canAct ? '<th>ACTION</th>' : ''}
+          </tr>
+        </thead>
+        <tbody>
+          ${reimbs.map((r, i) => `
+            <tr>
+              <td style="font-weight:500">${r.title}</td>
+              <td style="color:var(--muted)">${r.description}</td>
+              <td style="font-weight:600">₹${r.amount}</td>
+              <td>${statusBadge(r.status)}</td>
+              ${canAct ? `<td><div class="action-row">
+                <button class="btn btn-sm btn-green" onclick="openActionModal(${i+1})">Approve</button>
+                <button class="btn btn-sm btn-red" onclick="openActionModal(${i+1}, true)">Reject</button>
+              </div></td>` : ''}
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  function openReimbModal() {
+    document.getElementById('reimb-modal').classList.add('open');
+  }
+  function closeModal() {
+    document.getElementById('reimb-modal').classList.remove('open');
+  }
+
+  async function submitReimbursement() {
+    const title = document.getElementById('reimb-title').value.trim();
+    const description = document.getElementById('reimb-desc').value.trim();
+    const amount = parseFloat(document.getElementById('reimb-amount').value);
+    if (!title || !description || !amount) { toast('Fill in all fields', 'error'); return; }
+    const data = await api('POST', '/reimbursements', { title, description, amount });
+    if (data.status === 'success') {
+      toast('Reimbursement submitted!');
+      closeModal();
+      loadReimbursements();
+    } else {
+      toast(data.message, 'error');
+    }
+  }
+
+  let pendingReject = false;
+  function openActionModal(id, reject = false) {
+    currentReimbId = id;
+    pendingReject = reject;
+    document.getElementById('action-reimb-id').textContent = id;
+    document.getElementById('action-modal').classList.add('open');
+  }
+  function closeActionModal() {
+    document.getElementById('action-modal').classList.remove('open');
+  }
+
+  async function takeAction(status) {
+    const data = await api('PATCH', '/reimbursements', { userId: currentReimbId, status });
+    if (data.status === 'success') {
+      toast(`Reimbursement ${status.toLowerCase()}!`);
+      closeActionModal();
+      loadReimbursements();
+    } else {
+      toast(data.message, 'error');
+    }
+  }
+
+  // ── EMPLOYEES ─────────────────────────────────────────────────────────────
+  async function loadEmployees() {
+    const data = await api('GET', '/employees');
+    const list = document.getElementById('emp-list');
+    if (!data.data || !data.data.users.length) {
+      list.innerHTML = `<div class="empty-state"><div class="empty-icon">👤</div><p>No employees found</p></div>`;
+      return;
+    }
+    list.innerHTML = `
+      <table>
+        <thead><tr><th>ID</th><th>NAME</th><th>EMAIL</th><th>ROLE</th></tr></thead>
+        <tbody>
+          ${data.data.users.map(u => `
+            <tr>
+              <td style="color:var(--muted)">#${u.userId}</td>
+              <td style="font-weight:500">${u.name}</td>
+              <td style="color:var(--muted)">${u.email}</td>
+              <td>${roleBadge(u.role)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  // ── ADMIN ─────────────────────────────────────────────────────────────────
+  async function assignRole() {
+    const userId = parseInt(document.getElementById('admin-userid').value);
+    const role = document.getElementById('admin-role').value;
+    if (!userId) { toast('Enter a user ID', 'error'); return; }
+    const data = await api('POST', '/roles/assign', { userId, role });
+    if (data.status === 'success') toast(`Role ${role} assigned!`);
+    else toast(data.message, 'error');
+  }
+
+  async function assignEmpToRM() {
+    const userId = parseInt(document.getElementById('admin-empid').value);
+    const rmId = parseInt(document.getElementById('admin-rmid').value);
+    if (!userId || !rmId) { toast('Enter both IDs', 'error'); return; }
+    const data = await api('POST', '/employees/assign', { userId, rmId });
+    if (data.status === 'success') toast('Employee assigned to RM!');
+    else toast(data.message, 'error');
+  }
+
+  async function unassignEmpFromRM() {
+    const userId = parseInt(document.getElementById('admin-empid').value);
+    const rmId = parseInt(document.getElementById('admin-rmid').value);
+    if (!userId || !rmId) { toast('Enter both IDs', 'error'); return; }
+    const data = await api('DELETE', '/employees/assign', { userId, rmId });
+    if (data.status === 'success') toast('Assignment removed!');
+    else toast(data.message, 'error');
+  }
+</script>
+</body>
+</html>

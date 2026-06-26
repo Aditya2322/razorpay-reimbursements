@@ -34,7 +34,7 @@ const ReimbursementModel = {
   // EMP sees their own reimbursements with derived status
   async findByEmp(empId) {
     const { rows } = await pool.query(
-      `SELECT title, description, amount,
+      `SELECT id, title, description, amount,
               rm_approved, ape_approved, is_rejected
        FROM reimbursements
        WHERE emp_id = $1
@@ -42,6 +42,7 @@ const ReimbursementModel = {
       [empId]
     );
     return rows.map((r) => ({
+      id: r.id,
       title: r.title,
       description: r.description,
       amount: parseFloat(r.amount),
@@ -52,7 +53,7 @@ const ReimbursementModel = {
   // RM sees PENDING reimbursements from their direct reports
   async findPendingForRM(rmId) {
     const { rows } = await pool.query(
-      `SELECT r.title, r.description, r.amount,
+      `SELECT r.id, r.title, r.description, r.amount,
               r.rm_approved, r.ape_approved, r.is_rejected
        FROM reimbursements r
        JOIN employee_rm_assignments a ON a.emp_id = r.emp_id
@@ -63,6 +64,7 @@ const ReimbursementModel = {
       [rmId]
     );
     return rows.map((r) => ({
+      id: r.id,
       title: r.title,
       description: r.description,
       amount: parseFloat(r.amount),
@@ -73,7 +75,7 @@ const ReimbursementModel = {
   // APE sees reimbursements that RM has approved but APE hasn't yet acted on
   async findPendingForAPE() {
     const { rows } = await pool.query(
-      `SELECT title, description, amount,
+      `SELECT id, title, description, amount,
               rm_approved, ape_approved, is_rejected
        FROM reimbursements
        WHERE rm_approved = TRUE
@@ -82,6 +84,7 @@ const ReimbursementModel = {
        ORDER BY created_at DESC`
     );
     return rows.map((r) => ({
+      id: r.id,
       title: r.title,
       description: r.description,
       amount: parseFloat(r.amount),
@@ -92,7 +95,7 @@ const ReimbursementModel = {
   // CFO sees reimbursements that both RM and APE have approved
   async findApprovedForCFO() {
     const { rows } = await pool.query(
-      `SELECT title, description, amount,
+      `SELECT id, title, description, amount,
               rm_approved, ape_approved, is_rejected
        FROM reimbursements
        WHERE rm_approved = TRUE
@@ -101,6 +104,7 @@ const ReimbursementModel = {
        ORDER BY created_at DESC`
     );
     return rows.map((r) => ({
+      id: r.id,
       title: r.title,
       description: r.description,
       amount: parseFloat(r.amount),
@@ -111,7 +115,7 @@ const ReimbursementModel = {
   // All reimbursements for a specific EMP (for RM/APE/CFO subordinate lookup)
   async findAllByEmpId(empId) {
     const { rows } = await pool.query(
-      `SELECT title, description, amount,
+      `SELECT id, title, description, amount,
               rm_approved, ape_approved, is_rejected
        FROM reimbursements
        WHERE emp_id = $1
@@ -119,6 +123,7 @@ const ReimbursementModel = {
       [empId]
     );
     return rows.map((r) => ({
+      id: r.id,
       title: r.title,
       description: r.description,
       amount: parseFloat(r.amount),

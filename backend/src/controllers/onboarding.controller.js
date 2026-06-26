@@ -136,4 +136,16 @@ async function logout(req, res) {
   }
 }
 
-module.exports = { register, login, logout };
+function profile(req, res) {
+  return res.status(200).json({
+    status: 'success',
+    data: {
+      userId: req.user.id,
+      name: req.user.name,
+      email: req.user.email,
+      role: req.user.role,
+    },
+  });
+}
+
+module.exports = { register, login, logout, profile };
